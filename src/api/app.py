@@ -159,6 +159,10 @@ async def batch_predict(inputs: List[PredictionInput]):
         List of predictions
     """
     
+    # Validate input
+    if not inputs or len(inputs) == 0:
+        raise HTTPException(status_code=400, detail="Batch input cannot be empty")
+    
     if model is None or preprocessor is None:
         logger.error("Model not loaded")
         raise HTTPException(status_code=500, detail="Model not loaded")
