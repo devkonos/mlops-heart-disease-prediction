@@ -16,10 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
-COPY models/ ./models/
 
-# Create logs directory
-RUN mkdir -p logs
+# Create models and logs directories (models may be added later during training)
+RUN mkdir -p models logs
 
 # Expose port
 EXPOSE 8000
