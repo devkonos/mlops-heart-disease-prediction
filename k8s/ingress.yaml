@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: heart-disease-api-ingress
+  namespace: heart-disease-prediction
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.heart-disease.local
+    secretName: heart-disease-api-tls
+  rules:
+  - host: api.heart-disease.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: heart-disease-api
+            port:
+              number: 80
