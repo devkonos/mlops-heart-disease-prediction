@@ -10,6 +10,8 @@ import logging
 import json
 from datetime import datetime
 import os
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+from fastapi.responses import Response
 
 # Configure logging
 logging.basicConfig(
@@ -23,6 +25,40 @@ app = FastAPI(
     title="Heart Disease Prediction API",
     description="ML Model API for predicting heart disease risk",
     version="1.0.0"
+)
+
+# Prometheus Metrics
+REQUEST_COUNT = Counter(
+    'api_requests_total',
+    'Total API requests',
+    ['method', 'endpoint', 'status']
+)
+
+PREDICTION_COUNT = Counter(
+    'predictions_total',
+    'Total predictions made',
+    ['prediction_class']
+)
+
+REQUEST_LATENCY = Histogram(
+    'request_latency_seconds',
+    'Request latency in seconds',
+    ['endpoint']
+)
+
+MODEL_ACCURACY = Gauge(
+    'model_accuracy',
+    'Model accuracy metric'
+)
+
+PREDICTIONS_POSITIVE = Gauge(
+    'predictions_positive_total',
+    'Total positive predictions'
+)
+
+PREDICTIONS_NEGATIVE = Gauge(
+    'predictions_negative_total',
+    'Total negative predictions'
 )
 
 # Load model and preprocessor
@@ -96,6 +132,7 @@ async def root():
 @app.get("/health", tags=["Health"])
 async def health():
     """Health check endpoint"""
+    REQUEST_COUNT.labels(method="GET", endpoint="/health", status=200).inc()
     return {
         "status": "healthy",
         "model_loaded": model is not None
@@ -113,6 +150,7 @@ async def predict(input_data: PredictionInput):
     
     if model is None or preprocessor is None:
         logger.error("Model not loaded")
+        REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=500).inc()
         raise HTTPException(status_code=500, detail="Model not loaded")
     
     try:
@@ -127,6 +165,14 @@ async def predict(input_data: PredictionInput):
         prediction = model.predict(X_preprocessed)[0]
         probabilities = model.predict_proba(X_preprocessed)[0]
         confidence = float(max(probabilities))
+        
+        # Update metrics
+        REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=200).inc()
+        PREDICTION_COUNT.labels(prediction_class="positive" if prediction == 1 else "negative").inc()
+        if prediction == 1:
+            PREDICTIONS_POSITIVE.inc()
+        else:
+            PREDICTIONS_NEGATIVE.inc()
         
         # Log prediction
         logger.info(f"Prediction made: {prediction} with confidence {confidence:.4f}")
@@ -147,6 +193,7 @@ async def predict(input_data: PredictionInput):
         
     except Exception as e:
         logger.error(f"Error during prediction: {str(e)}")
+        REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=400).inc()
         raise HTTPException(status_code=400, detail=f"Prediction error: {str(e)}")
 
 
@@ -161,10 +208,12 @@ async def batch_predict(inputs: List[PredictionInput]):
     
     # Validate input
     if not inputs or len(inputs) == 0:
+        REQUEST_COUNT.labels(method="POST", endpoint="/batch_predict", status=400).inc()
         raise HTTPException(status_code=400, detail="Batch input cannot be empty")
     
     if model is None or preprocessor is None:
         logger.error("Model not loaded")
+        REQUEST_COUNT.labels(method="POST", endpoint="/batch_predict", status=500).inc()
         raise HTTPException(status_code=500, detail="Model not loaded")
     
     try:
@@ -183,6 +232,12 @@ async def batch_predict(inputs: List[PredictionInput]):
         responses = []
         for i, pred in enumerate(predictions):
             proba = probabilities[i]
+            PREDICTION_COUNT.labels(prediction_class="positive" if pred == 1 else "negative").inc()
+            if pred == 1:
+                PREDICTIONS_POSITIVE.inc()
+            else:
+                PREDICTIONS_NEGATIVE.inc()
+            
             responses.append({
                 "prediction": int(pred),
                 "confidence": float(max(proba)),
@@ -194,17 +249,20 @@ async def batch_predict(inputs: List[PredictionInput]):
                 "timestamp": datetime.now().isoformat()
             })
         
+        REQUEST_COUNT.labels(method="POST", endpoint="/batch_predict", status=200).inc()
         logger.info(f"Batch prediction made for {len(inputs)} samples")
         return responses
         
     except Exception as e:
         logger.error(f"Error during batch prediction: {str(e)}")
+        REQUEST_COUNT.labels(method="POST", endpoint="/batch_predict", status=400).inc()
         raise HTTPException(status_code=400, detail=f"Batch prediction error: {str(e)}")
 
 
 @app.get("/model-info", tags=["Model"])
 async def model_info():
     """Get model information"""
+    REQUEST_COUNT.labels(method="GET", endpoint="/model-info", status=200).inc()
     return {
         "model_type": "Random Forest Classifier",
         "features": [
@@ -215,6 +273,12 @@ async def model_info():
         "target": "heart_disease",
         "target_classes": ["No Disease", "Disease Present"]
     }
+
+
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """Prometheus metrics endpoint"""
+    return Response(generate_latest(), media_type="text/plain")
 
 
 if __name__ == "__main__":

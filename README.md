@@ -37,9 +37,9 @@ This report documents a production-grade MLOps pipeline for heart disease predic
 
 ### Key Achievements
 - Automated Data Pipeline: Reproducible download, cleaning, and preprocessing
-- Dual ML Models: Logistic Regression (85.2%) and Random Forest (86.9% accuracy)
+- Dual ML Models: Logistic Regression and Random Forest classifiers with hyperparameter tuning
 - Experiment Tracking: MLflow integration with parameter versioning
-- CI/CD Pipeline: GitHub Actions with 28/28 passing tests
+- CI/CD Pipeline: GitHub Actions with automated testing
 - Containerization: Docker & Kubernetes deployment with health checks
 - Dashboard: Streamlit UI for predictions and monitoring
 - Monitoring: Prometheus metrics and logging infrastructure
@@ -62,27 +62,25 @@ Heart disease remains the leading cause of death globally. This project develops
 ### 2.2 Dataset Overview
 
 **Source**: UCI Heart Disease Dataset  
-**Samples**: 303 patients  
 **Features**: 13 medical attributes  
-**Target**: Binary (0: No disease, 1: Disease present)  
-**Class Balance**: 48.2% vs 51.8%
+**Target**: Binary classification (0: No disease, 1: Disease present)
 
 **Feature Descriptions**:
-| Feature | Type | Range | Description |
-|---------|------|-------|-------------|
-| age | numeric | 29-77 | Age in years |
-| sex | binary | 0-1 | Female (0) / Male (1) |
-| cp | ordinal | 0-3 | Chest pain type |
-| trestbps | numeric | 94-200 | Resting BP (mmHg) |
-| chol | numeric | 126-564 | Cholesterol (mg/dl) |
-| fbs | binary | 0-1 | Fasting blood sugar > 120 mg/dl |
-| restecg | ordinal | 0-2 | Resting ECG results |
-| thalach | numeric | 60-202 | Max heart rate achieved |
-| exang | binary | 0-1 | Exercise-induced angina |
-| oldpeak | numeric | 0-6.2 | ST depression induced by exercise |
-| slope | ordinal | 0-2 | Slope of ST segment |
-| ca | ordinal | 0-4 | Number of major vessels |
-| thal | ordinal | 0-3 | Thalassemia type |
+| Feature | Type | Description |
+|---------|------|-------------|
+| age | numeric | Age in years |
+| sex | binary | Female (0) / Male (1) |
+| cp | ordinal | Chest pain type |
+| trestbps | numeric | Resting Blood Pressure |
+| chol | numeric | Cholesterol level |
+| fbs | binary | Fasting blood sugar indicator |
+| restecg | ordinal | Resting ECG results |
+| thalach | numeric | Max heart rate achieved |
+| exang | binary | Exercise-induced angina |
+| oldpeak | numeric | ST depression |
+| slope | ordinal | ST segment slope |
+| ca | ordinal | Number of major vessels |
+| thal | ordinal | Thalassemia type |
 
 ---
 
@@ -99,41 +97,30 @@ dataset = fetch_openml('heart-disease')
 
 ### 3.2 Data Quality Assessment
 
-- Missing Values: 0% (dataset is complete)
+- Missing Values: None
 - Duplicates: None found
-- Outliers: All features within expected clinical ranges
+- Outliers: Handled appropriately
 - Data Type Consistency: All features properly typed
 
 ### 3.3 Exploratory Analysis Results
 
 **Age Distribution**:
-- Mean: 54.4 years
-- Median: 55.5 years
-- Standard Deviation: 9.0 years
 - Range: 29-77 years
+- Typical age group represented
 
 **Target Distribution**:
-- No disease: 146 samples (48.2%)
-- Disease present: 157 samples (51.8%)
-- Class balance ratio: 0.93 (acceptable for medical datasets)
+- Balanced binary classification task
+- Approximately even split between positive and negative cases
 
 **Key Correlations with Target**:
-- thalach (max heart rate): +0.42
-- exang (exercise angina): -0.44
-- cp (chest pain type): +0.33
-- oldpeak (ST depression): +0.31
+- Exercise-induced angina and heart rate response are significant factors
+- Chest pain type and ST depression are relevant indicators
 
-**Business Insight**: Heart rate response to exercise is the strongest disease predictor, followed by chest pain characteristics.
+**Business Insight**: Cardiovascular fitness indicators and exercise response patterns are important disease predictors.
 
 ### 3.4 Feature Statistics
 
-| Feature | Min | Max | Mean | Std Dev |
-|---------|-----|-----|------|---------|
-| age | 29 | 77 | 54.4 | 9.0 |
-| trestbps | 94 | 200 | 131.6 | 17.6 |
-| chol | 126 | 564 | 246.3 | 51.9 |
-| thalach | 60 | 202 | 149.6 | 22.9 |
-| oldpeak | 0.0 | 6.2 | 1.04 | 1.16 |
+Numerical features include age, blood pressure, cholesterol, heart rate, and depression indicators with clinically appropriate ranges.
 
 ---
 
@@ -172,8 +159,8 @@ Raw Data -> Scaling -> Categorical Encoding -> Train-Test Split -> Model Input
 ### 4.4 Train-Test Split
 
 - Strategy: Stratified split (maintains class distribution)
-- Training set: 242 samples (80%)
-- Test set: 61 samples (20%)
+- Training set: 80% of data
+- Test set: 20% of data
 - Random state: 42 (ensures reproducibility)
 
 ### 4.5 Implementation Details
@@ -207,14 +194,13 @@ class DataPreprocessor:
 - Provides calibrated probability estimates
 
 **Hyperparameters Tuned**:
-- C (regularization): [0.1, 1.0, 10.0]
-- solver: ['lbfgs', 'liblinear']
-- max_iter: 1000
+- Regularization parameter (C)
+- Solver algorithm
+- Max iterations
 
-**Best Parameters Found**:
-- C: 1.0
-- solver: lbfgs
-- max_iter: 1000
+**Grid Search Configuration**:
+- GridSearchCV with 5-fold cross-validation
+- Scoring metric: ROC-AUC
 
 #### Model 2: Random Forest
 
@@ -225,14 +211,9 @@ class DataPreprocessor:
 - Ensemble approach reduces overfitting
 
 **Hyperparameters Tuned**:
-- n_estimators: [50, 100, 200]
-- max_depth: [5, 10, 15]
-- min_samples_split: 5
-
-**Best Parameters Found**:
-- n_estimators: 200 trees
-- max_depth: 10
-- min_samples_split: 5
+- Number of estimators
+- Tree depth
+- Minimum samples per split
 
 ### 5.2 Hyperparameter Tuning Methodology
 
@@ -248,35 +229,33 @@ GridSearchCV(
 )
 ```
 
-**Statistics**:
-- Total parameter combinations: 15 (6 for LR, 9 for RF)
-- CV folds: 5
-- Total models trained: 75
+**Methodology**:
+- 5-fold stratified cross-validation
+- GridSearchCV for systematic hyperparameter exploration
 
 ### 5.3 Final Model Performance Comparison
 
-| Metric | Logistic Regression | Random Forest | Winner |
-|--------|-------------------|---------------|--------|
-| Accuracy | 85.2% | 86.9% (SELECTED) | RF |
-| Precision | 0.83 | 0.85 | RF |
-| Recall | 0.87 | 0.89 | RF |
-| F1-Score | 0.85 | 0.87 | RF |
-| ROC-AUC | 0.915 | 0.925 | RF |
-| Training Time | 0.23s | 2.14s | LR |
+Both Logistic Regression and Random Forest models were trained and evaluated:
 
-**Selected Model**: Random Forest (86.9% accuracy, 0.925 ROC-AUC)
+| Aspect | Logistic Regression | Random Forest |
+|--------|-------------------|---------------|
+| Interpretability | High | Medium |
+| Training Speed | Fast | Slower |
+| Flexibility | Limited | High |
+| Selection | Baseline | Recommended |
+
+**Selected Model**: Random Forest - better handles non-linear relationships in medical data
 
 ### 5.4 Feature Importance Rankings
 
-| Rank | Feature | Importance % |
-|------|---------|-------------|
-| 1 | thalach (max heart rate) | 18.2% |
-| 2 | age | 16.5% |
-| 3 | oldpeak (ST depression) | 14.9% |
-| 4 | cp (chest pain type) | 12.3% |
-| 5 | exang (exercise angina) | 11.1% |
+The trained Random Forest model identifies key disease predictors:
+- Heart rate response to exercise
+- Patient age
+- ST depression indicators
+- Chest pain type
+- Exercise-induced angina
 
-**Medical Interpretation**: Heart rate response to exercise is the strongest disease predictor, indicating cardiovascular fitness limitations.
+**Medical Interpretation**: Cardiovascular stress response is a primary disease indicator.
 
 ### 5.5 Evaluation Metrics Explained
 
@@ -310,16 +289,14 @@ GridSearchCV(
 ### 6.3 Experiment Runs Summary
 
 **Run 1: LogisticRegression_v1**
-- C: 1.0, solver: lbfgs, max_iter: 1000
-- Best CV Score (ROC-AUC): 0.915
-- Training time: 0.23 seconds
-- Test Accuracy: 85.2%
+- Baseline model with interpretable coefficients
+- Faster training suitable for production inference
+- Cross-validated for robustness
 
 **Run 2: RandomForest_v1**
-- n_estimators: 200, max_depth: 10, min_samples_split: 5
-- Best CV Score (ROC-AUC): 0.925
-- Training time: 2.14 seconds
-- Test Accuracy: 86.9%
+- Ensemble model capturing non-linear patterns
+- Feature importance ranking for model explainability
+- Selected as production model
 
 ### 6.4 Accessing MLflow User Interface
 
@@ -346,10 +323,10 @@ mlflow ui --backend-store-uri file:mlruns
 **Format**: Pickle (.pkl) for maximum compatibility
 
 **Models Saved**:
-- logistic_regression_model.pkl (45 KB)
-- random_forest_model.pkl (2.3 MB)
-- preprocessor.pkl (12 KB)
-- prediction_pipeline.pkl (2.4 MB - end-to-end)
+- logistic_regression_model.pkl
+- random_forest_model.pkl
+- preprocessor.pkl
+- prediction_pipeline.pkl
 
 **Directory**: models/artifacts/
 
@@ -409,13 +386,10 @@ Purpose: Health check for load balancers and monitoring
 ```
 Response: {
     "model_type": "RandomForest",
-    "accuracy": 0.869,
-    "precision": 0.85,
-    "recall": 0.89,
-    "f1_score": 0.87,
-    "roc_auc": 0.925
+    "features": [...],
+    "target_classes": ["No Disease", "Disease Present"]
 }
-Purpose: Retrieve model metadata and performance metrics
+Purpose: Retrieve model metadata and configuration
 ```
 
 #### POST /predict
@@ -522,8 +496,8 @@ Purpose: Batch processing of multiple predictions
 - Edge case and error scenario coverage
 
 **Metrics Requirements**:
-- Code coverage >80% (achieved 95%)
-- All tests must pass (28/28 passing)
+- Code coverage >80%
+- All tests must pass
 - Build artifacts properly archived
 
 ### 9.4 Test Results Summary
@@ -546,9 +520,7 @@ Coverage Report: 95%
 
 ### 10.1 Dockerfile Configuration
 
-**Base Image**: python:3.9-slim (60 MB)
-
-**Final Image Size**: 250 MB (optimized)
+**Base Image**: python:3.9-slim (lightweight)
 
 **Build Layers**:
 1. System dependencies (gcc, curl)
