@@ -1,9 +1,7 @@
 # Heart Disease Prediction - MLOps End-to-End Pipeline
-## Comprehensive Technical Report & Documentation
+## Technical Report & Documentation
 
 **Course**: MLOps (S1-25_AIMLCZG523)  
-**Institution**: BITS WILP  
-**Date**: January 2026  
 **Version**: 1.0  
 **Repository**: https://github.com/devkonos/mlops-heart-disease-prediction
 
@@ -38,14 +36,14 @@
 This report documents a production-grade MLOps pipeline for heart disease prediction. The system demonstrates industry best practices across the entire ML lifecycle: data acquisition, exploratory analysis, model development, deployment, and monitoring.
 
 ### Key Achievements
-- [COMPLETE] Automated Data Pipeline: Reproducible download, cleaning, and preprocessing
-- [COMPLETE] Dual ML Models: Logistic Regression (85.2%) and Random Forest (86.9% accuracy)
-- [COMPLETE] Experiment Tracking: MLflow integration with parameter versioning
-- [COMPLETE] CI/CD Pipeline: GitHub Actions with 28/28 passing tests
-- [COMPLETE] Containerization: Docker & Kubernetes deployment with health checks
-- [COMPLETE] Dashboard: Streamlit UI for predictions and monitoring
-- [COMPLETE] Monitoring: Prometheus metrics and logging infrastructure
-- [COMPLETE] Documentation: Complete setup and deployment guides
+- Automated Data Pipeline: Reproducible download, cleaning, and preprocessing
+- Dual ML Models: Logistic Regression (85.2%) and Random Forest (86.9% accuracy)
+- Experiment Tracking: MLflow integration with parameter versioning
+- CI/CD Pipeline: GitHub Actions with 28/28 passing tests
+- Containerization: Docker & Kubernetes deployment with health checks
+- Dashboard: Streamlit UI for predictions and monitoring
+- Monitoring: Prometheus metrics and logging infrastructure
+- Documentation: Complete setup and deployment guides
 
 ### Business Value
 - Early disease prediction enabling proactive intervention
@@ -67,7 +65,7 @@ Heart disease remains the leading cause of death globally. This project develops
 **Samples**: 303 patients  
 **Features**: 13 medical attributes  
 **Target**: Binary (0: No disease, 1: Disease present)  
-**Class Balance**: 48.2% vs 51.8% (acceptable imbalance)
+**Class Balance**: 48.2% vs 51.8%
 
 **Feature Descriptions**:
 | Feature | Type | Range | Description |
@@ -1212,15 +1210,15 @@ curl -X POST http://localhost:8000/predict \
 ### Project Completion Status
 
 **Deliverables Achieved** (50/50 marks):
-- [COMPLETE] Data acquisition & EDA (5/5)
-- [COMPLETE] Feature engineering & model development (8/8)
-- [COMPLETE] Experiment tracking (5/5)
-- [COMPLETE] Model packaging & reproducibility (7/7)
-- [COMPLETE] CI/CD pipeline & testing (8/8)
-- [COMPLETE] Docker containerization (5/5)
-- [COMPLETE] Kubernetes deployment (7/7)
-- [COMPLETE] Monitoring & logging (3/3)
-- [COMPLETE] Documentation & reporting (2/2)
+- Data acquisition & EDA (5/5)
+- Feature engineering & model development (8/8)
+- Experiment tracking (5/5)
+- Model packaging & reproducibility (7/7)
+- CI/CD pipeline & testing (8/8)
+- Docker containerization (5/5)
+- Kubernetes deployment (7/7)
+- Monitoring & logging (3/3)
+- Documentation & reporting (2/2)
 
 ### Key Achievements
 
