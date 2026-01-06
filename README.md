@@ -119,7 +119,6 @@ dataset = fetch_openml('heart-disease')
 - Exercise-induced angina and heart rate response are significant factors
 - Chest pain type and ST depression are relevant indicators
 
-**Business Insight**: Cardiovascular fitness indicators and exercise response patterns are important disease predictors.
 
 ### 3.4 Feature Statistics
 
