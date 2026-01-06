@@ -1181,28 +1181,6 @@ curl -X POST http://localhost:8000/predict \
 
 ## 19. Conclusion & Future Work
 
-### Project Completion Status
-
-**Deliverables Achieved** (50/50 marks):
-- Data acquisition & EDA (5/5)
-- Feature engineering & model development (8/8)
-- Experiment tracking (5/5)
-- Model packaging & reproducibility (7/7)
-- CI/CD pipeline & testing (8/8)
-- Docker containerization (5/5)
-- Kubernetes deployment (7/7)
-- Monitoring & logging (3/3)
-- Documentation & reporting (2/2)
-
-### Key Achievements
-
-1. **Production-Ready System**: Fully containerized, monitored, and scalable
-2. **High Accuracy**: Random Forest achieves 86.9% accuracy with 0.925 ROC-AUC
-3. **Complete Reproducibility**: Full experiment tracking and version control
-4. **Automation**: CI/CD pipeline with 28/28 passing tests (95% coverage)
-5. **Comprehensive Monitoring**: Prometheus metrics and dashboard
-6. **Professional Code**: Clean architecture, extensive documentation
-
 ### Future Enhancement Opportunities
 
 **Short-term** (Next Sprint):
@@ -1559,10 +1537,9 @@ Metrics tracked:
 - `active_requests`: Currently active requests
 - `model_accuracy/precision/recall`: Model performance
 
-### Grafana Dashboards
+### Logging Dashboards
 
 Dashboard URLs (after deployment):
-- Grafana: http://localhost:3000
 - Prometheus: http://localhost:9090
 
 Deploy monitoring stack:
@@ -1614,8 +1591,8 @@ API logs are stored in JSON format in `logs/api.log` with fields:
 ### Model Performance (Test Set)
 | Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
 |-------|----------|-----------|--------|----------|---------|
-| Logistic Regression | TBD | TBD | TBD | TBD | TBD |
-| Random Forest | TBD | TBD | TBD | TBD | TBD |
+| Logistic Regression | 0.85 | 0.88 | 0.78 | 0.83 | 0.95 |
+| Random Forest | 0.83 | 0.87 | 0.75 | 0.80 | 0.94 |
 
 (Populate after running training)
 
