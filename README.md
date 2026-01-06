@@ -2,6 +2,14 @@
 ## Technical Report & Documentation
 
 **Course**: MLOps (S1-25_AIMLCZG523)  
+**Group: 58**
+## Members
+1. Rahul Agnihotri - 2024aa05347
+2. Eeshan Kumar - 2024aa05448
+3. Elitam Lokeshwar - 2024AB05046
+4. Sumit sharma 2024AA05812
+5. S Naresh Kumar- 2024AB05178
+
 **Version**: 1.0  
 **Repository**: https://github.com/devkonos/mlops-heart-disease-prediction
 
