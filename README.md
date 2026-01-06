@@ -54,12 +54,6 @@ This report documents a production-grade MLOps pipeline for heart disease predic
 - Monitoring: Prometheus metrics and logging infrastructure
 - Documentation: Complete setup and deployment guides
 
-### Business Value
-- Early disease prediction enabling proactive intervention
-- Scalable microservices supporting millions of predictions
-- Automated testing ensures 100% code quality
-- Complete audit trail with reproducible experiments
-
 ---
 
 ## 2. Introduction & Problem Statement
