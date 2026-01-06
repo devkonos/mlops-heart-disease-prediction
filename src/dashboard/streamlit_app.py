@@ -17,7 +17,7 @@ import mlflow
 # Page configuration
 st.set_page_config(
     page_title="Heart Disease Prediction Dashboard",
-    page_icon="❤️",
+    page_icon="pulse",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -38,17 +38,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ===== SIDEBAR =====
-st.sidebar.header("🎯 Navigation")
+st.sidebar.header("Navigation")
 page = st.sidebar.radio(
     "Select Page",
-    ["📊 Dashboard", "🔮 Make Prediction", "📈 Model Performance", "📋 Experiment History"]
+    ["Dashboard", "Make Prediction", "Model Performance", "Experiment History"]
 )
 
 API_URL = st.sidebar.text_input("API URL", value="http://localhost:8000")
 
 # ===== PAGE 1: DASHBOARD =====
-if page == "📊 Dashboard":
-    st.title("❤️ Heart Disease Prediction - Dashboard")
+if page == "Dashboard":
+    st.title("Heart Disease Prediction - Dashboard")
     st.markdown("---")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -68,16 +68,16 @@ if page == "📊 Dashboard":
             with col4:
                 st.metric("ROC-AUC", f"{model_info.get('roc_auc', 0):.4f}")
     except:
-        st.warning("⚠️ Could not connect to API. Make sure it's running at " + API_URL)
+        st.warning("WARNING: Could not connect to API. Make sure it's running at " + API_URL)
     
     st.markdown("---")
     
     # Project Overview
-    st.header("📋 Project Overview")
+    st.header("Project Overview")
     overview_cols = st.columns(2)
     
     with overview_cols[0]:
-        st.subheader("📌 Project Details")
+        st.subheader("Project Details")
         st.write("""
         - **Objective**: Predict heart disease risk based on patient medical data
         - **Dataset**: UCI Heart Disease Dataset
@@ -87,7 +87,7 @@ if page == "📊 Dashboard":
         """)
     
     with overview_cols[1]:
-        st.subheader("🛠️ Tech Stack")
+        st.subheader("Tech Stack")
         st.write("""
         - **ML Framework**: Scikit-learn
         - **API Server**: FastAPI
@@ -101,26 +101,26 @@ if page == "📊 Dashboard":
     st.markdown("---")
     
     # System Status
-    st.header("🔧 System Status")
+    st.header("System Status")
     sys_cols = st.columns(3)
     
     with sys_cols[0]:
         try:
             response = requests.get(f"{API_URL}/health", timeout=5)
-            status = "✅ Healthy" if response.status_code == 200 else "❌ Unhealthy"
+            status = "HEALTHY" if response.status_code == 200 else "UNHEALTHY"
             st.write(f"**API Status**: {status}")
         except:
-            st.write("**API Status**: ❌ Disconnected")
+            st.write("**API Status**: DISCONNECTED")
     
     with sys_cols[1]:
-        st.write("**Database**: ✅ Connected")
+        st.write("**Database**: CONNECTED")
     
     with sys_cols[2]:
-        st.write("**Dashboard**: ✅ Running")
+        st.write("**Dashboard**: RUNNING")
 
 # ===== PAGE 2: MAKE PREDICTION =====
-elif page == "🔮 Make Prediction":
-    st.title("🔮 Make Prediction")
+elif page == "Make Prediction":
+    st.title("Make Prediction")
     st.markdown("Enter patient information to get heart disease prediction")
     st.markdown("---")
     
@@ -147,7 +147,7 @@ elif page == "🔮 Make Prediction":
         thal = st.selectbox("Thalassemia", options=[0, 1, 2, 3])
         st.write("")
         st.write("")
-        predict_button = st.button("🔮 Predict", use_container_width=True)
+        predict_button = st.button("Predict", use_container_width=True)
     
     if predict_button:
         # Prepare input data
@@ -181,16 +181,16 @@ elif page == "🔮 Make Prediction":
                 confidence = result.get("confidence", 0)
                 
                 st.markdown("---")
-                st.subheader("📊 Prediction Result")
+                st.subheader("Prediction Result")
                 
                 result_col1, result_col2 = st.columns(2)
                 
                 with result_col1:
                     if prediction == 0:
-                        st.success("✅ No Heart Disease Detected")
+                        st.success("No Heart Disease Detected")
                         st.metric("Risk Level", "Low", delta="Safe")
                     else:
-                        st.error("⚠️ Heart Disease Likely")
+                        st.error("Heart Disease Likely")
                         st.metric("Risk Level", "High", delta="Alert")
                 
                 with result_col2:
@@ -214,15 +214,15 @@ elif page == "🔮 Make Prediction":
                     ))
                     st.plotly_chart(fig, use_container_width=True)
             else:
-                st.error(f"❌ Error: {response.text}")
+                st.error(f"Error: {response.text}")
         except requests.exceptions.ConnectionError:
-            st.error(f"❌ Cannot connect to API at {API_URL}")
+            st.error(f"Cannot connect to API at {API_URL}")
         except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
+            st.error(f"Error: {str(e)}")
 
 # ===== PAGE 3: MODEL PERFORMANCE =====
-elif page == "📈 Model Performance":
-    st.title("📈 Model Performance Metrics")
+elif page == "Model Performance":
+    st.title("Model Performance Metrics")
     st.markdown("---")
     
     try:
@@ -294,8 +294,8 @@ elif page == "📈 Model Performance":
         st.error("Cannot connect to API")
 
 # ===== PAGE 4: EXPERIMENT HISTORY =====
-elif page == "📋 Experiment History":
-    st.title("📋 MLflow Experiment History")
+elif page == "Experiment History":
+    st.title("MLflow Experiment History")
     st.markdown("Experiment tracking and model comparison")
     st.markdown("---")
     
@@ -303,7 +303,7 @@ elif page == "📋 Experiment History":
         # Try to read MLflow data
         mlflow_path = Path("mlruns")
         if mlflow_path.exists():
-            st.info("📁 MLflow experiments stored locally in `mlruns/` directory")
+            st.info("MLflow experiments stored locally in mlruns/ directory")
             
             # Count experiments
             experiments = list(mlflow_path.glob("*/"))
@@ -319,7 +319,7 @@ elif page == "📋 Experiment History":
                     st.write(f"Runs: {len(runs)}")
             
             st.markdown("---")
-            st.info("💡 To view detailed MLflow UI, run: `mlflow ui --backend-store-uri file:mlruns`")
+            st.info("To view detailed MLflow UI, run: mlflow ui --backend-store-uri file:mlruns")
         else:
             st.warning("No MLflow experiments found. Train models first!")
     except Exception as e:
@@ -327,4 +327,4 @@ elif page == "📋 Experiment History":
 
 st.markdown("---")
 st.sidebar.markdown("---")
-st.sidebar.markdown("Made with ❤️ for Heart Disease Prediction MLOps")
+st.sidebar.markdown("Heart Disease Prediction MLOps Pipeline")
