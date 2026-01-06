@@ -61,19 +61,27 @@ PREDICTIONS_NEGATIVE = Gauge(
     'Total negative predictions'
 )
 
-# Load model and preprocessor
-MODEL_PATH = "models/artifacts/random_forest_model.pkl"
+# Load models and preprocessor
+LOGISTIC_MODEL_PATH = "models/artifacts/logistic_regression_model.pkl"
+RANDOM_FOREST_MODEL_PATH = "models/artifacts/random_forest_model.pkl"
 PREPROCESSOR_PATH = "models/artifacts/preprocessor.pkl"
 
 # Try to load models, use None if not available (for testing)
 try:
-    model = joblib.load(MODEL_PATH)
+    logistic_model = joblib.load(LOGISTIC_MODEL_PATH)
+    random_forest_model = joblib.load(RANDOM_FOREST_MODEL_PATH)
     preprocessor = joblib.load(PREPROCESSOR_PATH)
-    logger.info("Model and preprocessor loaded successfully")
+    logger.info("Models and preprocessor loaded successfully")
+    models_loaded = True
 except FileNotFoundError as e:
     logger.warning(f"Model files not found: {e}. Running in demo mode.")
-    model = None
+    logistic_model = None
+    random_forest_model = None
     preprocessor = None
+    models_loaded = False
+
+# Default to random forest if both available
+model = random_forest_model
 
 
 class PredictionInput(BaseModel):
@@ -91,6 +99,7 @@ class PredictionInput(BaseModel):
     slope: float
     ca: float
     thal: float
+    model_type: str = "random_forest"
     
     class Config:
         example = {
@@ -106,7 +115,8 @@ class PredictionInput(BaseModel):
             "oldpeak": 2.3,
             "slope": 0,
             "ca": 0,
-            "thal": 1
+            "thal": 1,
+            "model_type": "random_forest"
         }
 
 
@@ -144,26 +154,45 @@ async def predict(input_data: PredictionInput):
     """
     Make prediction for heart disease risk
     
+    Parameters:
+        input_data: Patient medical data
+        model_type: "random_forest" or "logistic_regression"
+    
     Returns:
         Prediction with confidence score and probabilities
     """
     
-    if model is None or preprocessor is None:
-        logger.error("Model not loaded")
+    if preprocessor is None:
+        logger.error("Preprocessor not loaded")
         REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=500).inc()
-        raise HTTPException(status_code=500, detail="Model not loaded")
+        raise HTTPException(status_code=500, detail="Preprocessor not loaded")
+    
+    # Select model based on model_type
+    selected_model = None
+    if input_data.model_type == "logistic_regression":
+        selected_model = logistic_model
+    elif input_data.model_type == "random_forest":
+        selected_model = random_forest_model
+    else:
+        REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=400).inc()
+        raise HTTPException(status_code=400, detail="Invalid model_type. Use 'logistic_regression' or 'random_forest'")
+    
+    if selected_model is None:
+        logger.error(f"Selected model ({input_data.model_type}) not loaded")
+        REQUEST_COUNT.labels(method="POST", endpoint="/predict", status=500).inc()
+        raise HTTPException(status_code=500, detail=f"Model {input_data.model_type} not loaded")
     
     try:
-        # Convert input to numpy array
-        input_dict = input_data.dict()
+        # Convert input to numpy array (exclude model_type)
+        input_dict = input_data.dict(exclude={"model_type"})
         X = np.array([list(input_dict.values())])
         
         # Preprocess
         X_preprocessed = preprocessor.transform(X)
         
         # Predict
-        prediction = model.predict(X_preprocessed)[0]
-        probabilities = model.predict_proba(X_preprocessed)[0]
+        prediction = selected_model.predict(X_preprocessed)[0]
+        probabilities = selected_model.predict_proba(X_preprocessed)[0]
         confidence = float(max(probabilities))
         
         # Update metrics
@@ -175,7 +204,7 @@ async def predict(input_data: PredictionInput):
             PREDICTIONS_NEGATIVE.inc()
         
         # Log prediction
-        logger.info(f"Prediction made: {prediction} with confidence {confidence:.4f}")
+        logger.info(f"Prediction made ({input_data.model_type}): {prediction} with confidence {confidence:.4f}")
         
         # Format response
         response = PredictionOutput(
