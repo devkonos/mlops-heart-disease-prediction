@@ -332,7 +332,7 @@ mlflow ui --backend-store-uri file:mlruns
 
 **Directory**: models/artifacts/
 
-### 7.2 Reproducibility Guarantees
+### 7.2 Reproducibility
 
 ```python
 from src.models.train import PredictionPipeline
@@ -343,12 +343,6 @@ pipeline = PredictionPipeline.load('models/artifacts/prediction_pipeline.pkl')
 # Make prediction (input automatically preprocessed)
 prediction = pipeline.predict(raw_patient_data)
 ```
-
-**Guarantees Provided**:
-1. Same preprocessing applied every prediction
-2. Same model weights loaded consistently
-3. Same scaling/encoding applied to inputs
-4. Deterministic outputs (same input -> same output always)
 
 ### 7.3 Dependency Management
 
